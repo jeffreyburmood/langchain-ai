@@ -32,3 +32,32 @@ response = agent.invoke(
 
 pprint(response)
 
+# adding memory to the conversation using checkpoints
+from langgraph.checkpoint.memory import InMemorySaver
+
+
+agent = create_agent(
+    "claude-haiku-4-5-20251001",
+    checkpointer=InMemorySaver(),
+)
+
+from langchain.messages import HumanMessage
+
+question = HumanMessage(content="Hello my name is Jeffrey and my favourite colour is green")
+config = {"configurable": {"thread_id": "1"}}
+
+response = agent.invoke(
+    {"messages": [question]},
+    config,
+)
+
+pprint(response)
+
+question = HumanMessage(content="What's my favourite colour?")
+
+response = agent.invoke(
+    {"messages": [question]},
+    config,
+)
+
+pprint(response)
