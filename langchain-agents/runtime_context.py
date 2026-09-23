@@ -1,0 +1,68 @@
+""" From Langchain Academy - Langchain Agents with Python - Module 2 """
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+from dataclasses import dataclass
+
+# set up context but the agent isn't aware of the context when it's running,
+# the context needs to be accessed via runtime tools so the context window
+# does not get overwhelmed
+@dataclass
+class ColourContext:
+    favourite_colour: str = "blue"
+    least_favourite_colour: str = "yellow"
+
+from langchain.agents import create_agent
+
+agent = create_agent(
+    model="gpt-5-nano",
+    context_schema=ColourContext
+)
+
+from langchain.messages import HumanMessage
+
+response = agent.invoke(
+    {"messages": [HumanMessage(content="What is my favourite colour?")]},
+    context=ColourContext()
+)
+
+from pprint import pprint
+
+pprint(response)
+
+# accessing the context via runtime tools
+from langchain.tools import tool, ToolRuntime
+
+@tool
+def get_favourite_colour(runtime: ToolRuntime[ColourContext]) -> str:
+    """Get the favourite colour of the user"""
+    return runtime.context.favourite_colour
+
+@tool
+def get_least_favourite_colour(runtime: ToolRuntime[ColourContext]) -> str:
+    """Get the least favourite colour of the user"""
+    return runtime.context.least_favourite_colour
+
+agent = create_agent(
+    model="gpt-5-nano",
+    tools=[get_favourite_colour, get_least_favourite_colour],
+    context_schema=ColourContext
+)
+
+response = agent.invoke(
+    {"messages": [HumanMessage(content="What is my favourite colour?")]},
+    context=ColourContext()
+)
+
+pprint(response)
+
+# can also change the context though it's still behaving as static
+response = agent.invoke(
+    {"messages": [HumanMessage(content="What is my favourite colour?")]},
+    context=ColourContext(favourite_colour="green")
+)
+
+pprint(response)
+
